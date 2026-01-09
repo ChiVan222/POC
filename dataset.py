@@ -6,7 +6,6 @@ import json
 import h5py
 import numpy as np
 
-# --- CONFIG ---
 SPATIAL_CLASSES = [
     "above", "across", "against", "along", "at", "behind", "between", 
     "in", "in front of", "near", "next to", "on", "on back of", 
@@ -26,7 +25,6 @@ ACTION_CLASSES = [
 class CachedDecoupledDataset(Dataset):
     def __init__(self, h5_path):
         self.h5_path = h5_path
-        # Open once to cache the number of images
         with h5py.File(self.h5_path, 'r') as f:
             self.num_images = f.attrs['num_images']
 
@@ -34,7 +32,6 @@ class CachedDecoupledDataset(Dataset):
         return self.num_images
 
     def __getitem__(self, idx):
-        # Open H5 in each worker to avoid thread-safety issues
         with h5py.File(self.h5_path, 'r') as f:
             str_idx = str(idx)
             if str_idx not in f:
@@ -46,13 +43,12 @@ class CachedDecoupledDataset(Dataset):
 
             return {
                 'geo': torch.from_numpy(grp['geo'][:]).float(),
-                'vis': torch.from_numpy(grp['vis'][:]).float(), # Cast float16 to float32
+                'vis': torch.from_numpy(grp['vis'][:]).float(),
                 's_label': torch.from_numpy(grp['s_label'][:]).long(),
                 'a_label': torch.from_numpy(grp['a_label'][:]).long()
             }
 
 def collate_fn(batch):
-    """Filters out None samples where images had no relationships."""
     batch = [b for b in batch if b is not None]
     if len(batch) == 0: return None
     return torch.utils.data.dataloader.default_collate(batch)

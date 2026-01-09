@@ -11,35 +11,29 @@ import gc
 from functools import lru_cache
 
 # --- PROJECT IMPORTS ---
-from model_decoupled import DecoupledSemanticSGG
+from model import DecoupledSemanticSGG
 from GroundingDINO.groundingdino.util.inference import load_model
 
-# ============================================================
-# 1. CONFIGURATION
-# ============================================================
+
 warnings.filterwarnings('ignore')
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 torch.backends.cudnn.benchmark = True
 
 CONFIG = {
-    "train_batch_size": 128,      # Optimized for SSD streaming
+    "train_batch_size": 128,      
     "learning_rate": 1e-4,
     "num_epochs": 50,
     "warmup_epochs": 5,
     "save_frequency": 5,
-    "bg_weight": 0.1,             # Learn background without letting it dominate
-    "num_workers": 14,            # Physical cores on your Xeon CPU
+    "bg_weight": 0.1,             
+    "num_workers": 8,            
 }
 
 TRAIN_H5 = r"C:\Users\van\Desktop\SGG_data\train_features_negatives.h5"
 
-# NEW CLASS LISTS (Including __background__ at Index 0)
 SPATIAL_CLASSES = ["__background__", "above", "across", "against", "along", "at", "behind", "between", "in", "in front of", "near", "on", "on back of", "over", "under", "with"]
 ACTION_CLASSES = ["__background__", "carrying", "eating", "flying in", "holding", "laying on", "looking at", "lying on", "playing", "riding", "sitting on", "standing on", "using", "walking in", "walking on", "watching", "wearing", "wears"]
 
-# ============================================================
-# 2. DATASET (On-the-fly Background Mapping)
-# ============================================================
 
 class H5LazyDataset(Dataset):
     def __init__(self, h5_path):
@@ -53,13 +47,12 @@ class H5LazyDataset(Dataset):
         with h5py.File(self.h5_path, 'r') as f:
             grp = f[self.keys[idx]]
             
-            # Use .astype if you need to ensure consistent types
             return {
                 'geo': torch.from_numpy(grp['geo'][:]).float(),
                 'vis': torch.from_numpy(grp['vis'][:]).float(),
                 's_label': torch.from_numpy(grp['s_label'][:]).long(),
                 'a_label': torch.from_numpy(grp['a_label'][:]).long(),
-                'pred': torch.from_numpy(grp['pred'][:]).long()  # <--- CRITICAL ADDITION
+                'pred': torch.from_numpy(grp['pred'][:]).long()  
             }
 def train_collate(batch):
     batch = [b for b in batch if b is not None]
@@ -70,9 +63,7 @@ def train_collate(batch):
         'a_label': torch.cat([b['a_label'] for b in batch], 0),
     }
 
-# ============================================================
-# 3. BALANCED LOSS FUNCTIONS
-# ============================================================
+
 
 class WeightedDecoupledLoss(nn.Module):
     def __init__(self, num_classes, reg_w=0.1, is_action=False):
@@ -80,18 +71,15 @@ class WeightedDecoupledLoss(nn.Module):
         self.reg_w = reg_w
         self.is_action = is_action
         
-        # Weighted CE: 0.1 for background, 1.0 for relations
         weights = torch.ones(num_classes).to(DEVICE)
         weights[0] = CONFIG["bg_weight"]
         self.ce = nn.CrossEntropyLoss(weight=weights)
         
     def forward(self, logits, labels, feat, text_embeds):
-        # Apply temperature if it's the action head
         target_logits = logits / 0.07 if self.is_action else logits
         
         loss_cls = self.ce(target_logits, labels)
         
-        # Semantic alignment for non-background samples only
         mask = labels > 0
         if self.reg_w > 0 and mask.any():
             loss_reg = 1.0 - F.cosine_similarity(F.normalize(feat[mask], dim=-1), 
@@ -99,9 +87,7 @@ class WeightedDecoupledLoss(nn.Module):
             return loss_cls + self.reg_w * loss_reg
         return loss_cls
 
-# ============================================================
-# 4. MAIN TRAINING EXECUTION
-# ============================================================
+
 
 @lru_cache(maxsize=2)
 def build_text_prototypes_cached(classes_key, model_path, config_path):
@@ -127,7 +113,6 @@ def main():
                               shuffle=True, collate_fn=train_collate, num_workers=CONFIG["num_workers"], 
                               persistent_workers=True)
 
-    # Heads: 16 (15+1) and 18 (17+1)
     model = DecoupledSemanticSGG(vis_dim=1024, geo_dim=8, embed_dim=768).to(DEVICE)
     optimizer = torch.optim.AdamW(model.parameters(), lr=CONFIG["learning_rate"])
     scaler = torch.cuda.amp.GradScaler()

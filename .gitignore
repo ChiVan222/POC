@@ -3,3 +3,5 @@
 *.jpg
 *.h5
 *.pyc
+vg_data/test_features_final/
+vg_data/train_features_final/

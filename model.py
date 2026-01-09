@@ -19,7 +19,6 @@ class SpatialHead(nn.Module):
     def forward(self, geo, text_emb):
         geo_feat = F.normalize(self.mlp(geo), dim=-1)
         text_emb = F.normalize(text_emb, dim=-1)
-        # Scaled cosine similarity
         return self.logit_scale.exp() * (geo_feat @ text_emb.T), geo_feat
 
 class GatedSemanticActionHead(nn.Module):
@@ -42,12 +41,11 @@ class GatedSemanticActionHead(nn.Module):
         self.logit_scale = nn.Parameter(torch.ones([]) * 4.6052)
 
     def forward(self, vis_feats, geo, text_emb):
-        f_ret = self.retention(vis_feats) # Base pre-trained VLM signal
+        f_ret = self.retention(vis_feats)
         combined_in = torch.cat([vis_feats, geo], dim=-1)
-        f_ali = self.alignment(combined_in) # Geometry-aware shift
+        f_ali = self.alignment(combined_in) 
         
         g = self.gate(vis_feats)
-        # Gated residual fusion
         vis_aligned = F.normalize(f_ret + g * f_ali, dim=-1)
         
         text_emb = F.normalize(text_emb, dim=-1)

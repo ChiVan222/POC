@@ -5,14 +5,6 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-# ============================================================
-# 1. CONFIGURATION
-# ============================================================
-
-
-# ============================================================
-# 2. PREDICATE MAPPING
-# ============================================================
 VG150_PREDICATES = [
     "background", "above", "across", "against", "along", "and", "at", 
     "attached to", "behind", "belonging to", "between", "carrying", 
@@ -42,23 +34,18 @@ ACTION_MAP = {n: i for i, n in enumerate(ACTION_CLASSES)}
 GLOBAL_TO_SPATIAL = {i: SPATIAL_MAP.get(n, -100) for i, n in enumerate(VG150_PREDICATES)}
 GLOBAL_TO_ACTION  = {i: ACTION_MAP.get(n, -100)  for i, n in enumerate(VG150_PREDICATES)}
 
-# ============================================================
-# 3. MERGE LOGIC
-# ============================================================
+
 def merge_using_lookup(split="train"):
     print(f"{'='*60}")
-    print(f"📦 MERGING SPLIT: {split}")
+    print(f" MERGING SPLIT: {split}")
     print(f"{'='*60}")
     SRC_DIR = f"vg_data/{split}_features_final"
     DST_FILE = f"vg_data/{split}_features_negatives.h5"
     LOOKUP_FILE = "vg_data/lookup_map.json"
     if os.path.exists(DST_FILE):
-        print(f"❌ Output file already exists: {DST_FILE}")
+        print(f" Output file already exists: {DST_FILE}")
         return
 
-    # --------------------------------------------------------
-    # Load lookup map
-    # --------------------------------------------------------
     print(f">>> Loading lookup map: {LOOKUP_FILE}")
     with open(LOOKUP_FILE, "r") as f:
         full_map = json.load(f)
@@ -76,9 +63,6 @@ def merge_using_lookup(split="train"):
 
     success, missing = 0, 0
 
-    # --------------------------------------------------------
-    # Create HDF5
-    # --------------------------------------------------------
     with h5py.File(DST_FILE, "w") as h5:
         h5.attrs["split"] = split
         h5.attrs["num_images"] = num_images
@@ -141,16 +125,13 @@ def merge_using_lookup(split="train"):
                 print(f"⚠️ Error on {pt_path}: {e}")
                 missing += 1
 
-    print("\n✅ Merge Complete")
+    print("\n Merge Complete")
     print(f"   Split          : {split}")
     print(f"   Packed Images  : {success}")
     print(f"   Missing/Empty  : {missing}")
     print(f"   Output Size    : {os.path.getsize(DST_FILE) / (1024**3):.2f} GB")
 
-# ============================================================
-# 4. ENTRY POINT
-# ============================================================
+
 if __name__ == "__main__":
     merge_using_lookup(split="train")
-    # merge_using_lookup(split="val")
     merge_using_lookup(split="test")

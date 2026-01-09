@@ -6,19 +6,15 @@ from tqdm import tqdm
 from collections import Counter
 import os
 
-# --- PROJECT IMPORTS ---
-from model_decoupled import DecoupledSemanticSGG
+from model import DecoupledSemanticSGG
 from train import build_text_prototypes_cached, SPATIAL_CLASSES, ACTION_CLASSES, H5LazyDataset
 from datasets.vg import VG150_PREDICATES
 
-# ============================================================
-# 1. CONFIGURATION
-# ============================================================
+
 CHECKPOINT_PATH = "checkpoints/epoch_50.pth" 
 TEST_H5 = r"C:\Users\van\Desktop\SGG_data\test_features_negatives.h5"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Explicit paths to ensure BERT/SwinB sync
 DINO_CKPT = "weights/vg-pretrain-coco-swinb.pth"
 DINO_CFG = "GroundingDINO/groundingdino/config/GroundingDINO_SwinB_ovr.py"
 
@@ -31,7 +27,6 @@ def debug_collate(batch):
         'pred': torch.from_numpy(np.concatenate([b['pred'] for b in batch], 0))
     }
 
-# Unified Mapping Logic
 s_map = {n: i for i, n in enumerate(SPATIAL_CLASSES)}
 a_map = {n: i for i, n in enumerate(ACTION_CLASSES)}
 vg_to_s = np.array([s_map.get(p, -100) for p in VG150_PREDICATES])
@@ -44,7 +39,6 @@ def debug_top_predicates():
         model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=DEVICE))
     model.eval()
 
-    # Pass explicit paths to the cached builder
     s_txt = build_text_prototypes_cached("|".join(SPATIAL_CLASSES), DINO_CKPT, DINO_CFG)
     a_txt = build_text_prototypes_cached("|".join(ACTION_CLASSES), DINO_CKPT, DINO_CFG)
 
@@ -61,7 +55,6 @@ def debug_top_predicates():
 
         s_logits, a_logits, *_ = model(geo, vis, s_txt, a_txt)
         
-        # Scaling Action head to match training loss distribution
         s_probs = F.softmax(s_logits, dim=-1).cpu().numpy()
         a_probs = F.softmax(a_logits / 0.07, dim=-1).cpu().numpy()
 
@@ -72,8 +65,7 @@ def debug_top_predicates():
             if s_idx != -100: unified_scores[:, vg_id] = s_probs[:, s_idx]
             elif a_idx != -100: unified_scores[:, vg_id] = a_probs[:, a_idx]
 
-        # GET TOP NON-BACKGROUND PREDICTION
-        # We find the argmax across the unified 51 predicates (skipping index 0)
+       
         top_preds = np.argmax(unified_scores[:, 1:], axis=1) + 1
         
         model_preds_all.extend(top_preds.tolist())
@@ -86,11 +78,9 @@ def debug_top_predicates():
     print(f"{'Predicate Name':<20} | {'Model Count':<15} | {'GT Count':<15} | {'Bias Ratio'}")
     print("-" * 85)
     
-    # Sort by Model Count to see what the model is "obsessed" with
     for pid, m_c in model_counts.most_common(25):
         p_name = VG150_PREDICATES[pid]
         g_c = gt_counts[pid]
-        # Bias Ratio: >1.0 means model over-predicts this compared to GT
         ratio = m_c / g_c if g_c > 0 else float('inf')
         ratio_str = f"{ratio:.2f}x" if g_c > 0 else "NEW"
         print(f"{p_name:<20} | {m_c:<15} | {g_c:<15} | {ratio_str}")
