@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F 
 
 class GNN(nn.Module): 
-    def __init__(self, sam_dim = 256, clip_visual_dim = 768, clip_text_dim = 768, hidden_dim = 512, num_layers =2): 
+    def __init__(self, sam_dim = 256, clip_visual_dim = 768, clip_text_dim = 768, hidden_dim = 512, num_layers =2, edge_extra_dim=4): 
           super().__init__()
           self.node_mlp = nn.Sequential(
                nn.Linear(sam_dim, hidden_dim),
@@ -11,8 +11,9 @@ class GNN(nn.Module):
                nn.ReLU(),
                nn.Linear(hidden_dim, hidden_dim)
           )
+          # Edge MLP now accepts visual CLIP features concatenated with spatial extras
           self.edge_mlp = nn.Sequential(
-               nn.Linear(clip_visual_dim, hidden_dim),
+               nn.Linear(clip_visual_dim + edge_extra_dim, hidden_dim),
                nn.LayerNorm(hidden_dim),
                nn.ReLU(),
                nn.Linear(hidden_dim, hidden_dim)
@@ -28,6 +29,14 @@ class GNN(nn.Module):
               nn.Linear(hidden_dim, clip_text_dim) 
           )         
           self.bg_embedding = nn.Parameter(torch.randn(1, clip_text_dim))
+          # Binary interaction head: predicts whether an edge represents a real interaction
+          self.interaction_head = nn.Sequential(
+               nn.Linear(hidden_dim, hidden_dim),
+               nn.LayerNorm(hidden_dim),
+               nn.ReLU(),
+               nn.Linear(hidden_dim, 1),
+               nn.Sigmoid()
+          )
     def forward(self, node_feats, edge_feats, edge_indices): 
         
         nodes  = self.node_mlp(node_feats)
@@ -39,4 +48,6 @@ class GNN(nn.Module):
         triplets = triplets.unsqueeze(0)
         refined_edges = self.gnn(triplets).squeeze(0)
         visual_concepts = self.classifier_head(refined_edges)
-        return visual_concepts
+        # interaction score per edge in [0,1]
+        interaction_score = self.interaction_head(refined_edges).squeeze(-1)
+        return visual_concepts, interaction_score
