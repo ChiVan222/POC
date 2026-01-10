@@ -49,9 +49,11 @@ POC/GroundingDINO/
 ```
 3. **Model ckpt** 
 Create a checkpoints folder and place the epoch_50.pth 
+```text
 POC/
 └─ checkpoints/
     └─ epoch_50.pth
+```
 ### 6️⃣ Install dataset
 
 Follow the guide from [Dataset](https://github.com/gpt4vision/OvSGTR/blob/master/datasets/data.md).
