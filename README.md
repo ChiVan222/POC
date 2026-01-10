@@ -23,12 +23,20 @@ conda activate poc
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-### 4️⃣ Install the remaining dependencies
+### 4️⃣ Install GroundingDINO
+
+```bash
+cd GroundingDINO && python setup.py install
+cd ..
+```
+
+### 5️⃣ Install the remaining dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
-### 5️⃣ Install pretrained weights
+
+### 6️⃣ Install pretrained weights
 The weight can downloaded from  [here](https://drive.google.com/drive/folders/1broKlAkmrGxxFllXA96NCW7VsXt2O_1D?usp=drive_link) in the ckpt.
 Place them as the following: 
 
@@ -54,7 +62,7 @@ POC/
 └─ checkpoints/
     └─ epoch_50.pth
 ```
-### 6️⃣ Install dataset
+### 7️⃣ Install dataset
 
 Follow the guide from [Dataset](https://github.com/gpt4vision/OvSGTR/blob/master/datasets/data.md).
 The preprocessed features can downloaded from  [here](https://drive.google.com/drive/folders/1broKlAkmrGxxFllXA96NCW7VsXt2O_1D?usp=drive_link) in the Preprocessed Data.
