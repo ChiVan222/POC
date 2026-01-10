@@ -9,22 +9,22 @@ from model import DecoupledSemanticSGG
 from train import build_text_prototypes_cached, SPATIAL_CLASSES, ACTION_CLASSES
 from datasets.vg import VGDataset, VG150_PREDICATES 
 
-# CHECKPOINT_PATH = "checkpoints/epoch_50.pth"
-# TEST_H5 = "vg_data/features/test_features_with_ids.h5"
-# DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-# IMG_DIR = "vg_data/VG_100K"
-# ROIDB_FILE = "vg_data/stanford_filtered/VG-SGG.h5"
-# DICT_FILE = "vg_data/stanford_filtered/VG-SGG-dicts.json"
-# IMAGE_FILE = "vg_data/stanford_filtered/image_data.json"
 CHECKPOINT_PATH = "checkpoints/epoch_50.pth"
-TEST_H5 = r"C:\Users\van\Desktop\SGG_data\test_features_with_ids.h5"
+TEST_H5 = "vg_data/features/test_features_with_ids.h5"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-IMG_DIR = r"D:\SceneGraphGeneration\POC\vg_data\VG_100K"
-ROIDB_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG.h5"
-DICT_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG-dicts.json"
-IMAGE_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\image_data.json"
+IMG_DIR = "vg_data/VG_100K"
+ROIDB_FILE = "vg_data/stanford_filtered/VG-SGG.h5"
+DICT_FILE = "vg_data/stanford_filtered/VG-SGG-dicts.json"
+IMAGE_FILE = "vg_data/stanford_filtered/image_data.json"
+# CHECKPOINT_PATH = "checkpoints/epoch_50.pth"
+# TEST_H5 = r"C:\Users\van\Desktop\SGG_data\test_features_with_ids.h5"
+# DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+# IMG_DIR = r"D:\SceneGraphGeneration\POC\vg_data\VG_100K"
+# ROIDB_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG.h5"
+# DICT_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG-dicts.json"
+# IMAGE_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\image_data.json"
 K_VALS = [20, 50, 100]
 
 PREDICATE_MAPPING = {

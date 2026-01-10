@@ -22,10 +22,10 @@ torch.backends.cudnn.benchmark = True
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-IMG_DIR = r"D:\SceneGraphGeneration\POC\vg_data\VG_100K"
-ROIDB_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG.h5"
-DICT_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG-dicts.json"
-IMAGE_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\image_data.json"
+IMG_DIR = "vg_data/VG_100K"
+ROIDB_FILE = "vg_data/stanford_filtered/VG-SGG.h5"
+DICT_FILE = "vg_data/stanford_filtered/VG-SGG-dicts.json"
+IMAGE_FILE = "vg_data/stanford_filtered/image_data.json"
 
 SPLIT = 'train' 
 
@@ -174,7 +174,6 @@ class AsyncSaver:
     def stop(self):
         """Stop save workers"""
         self.running = False
-        # Add sentinels for each worker
         for _ in self.workers:
             self.save_queue.put((None, None))
         
@@ -662,7 +661,6 @@ def main():
     print("STARTING PREPROCESSING PIPELINE")
     print(f"{'='*60}")
     
-    # Process training split first
     run_perfected_preprocess('train')
     
     print(f"\n{'='*60}")

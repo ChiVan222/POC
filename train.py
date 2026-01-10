@@ -29,7 +29,7 @@ CONFIG = {
     "num_workers": 8,            
 }
 
-TRAIN_H5 = r"C:\Users\van\Desktop\SGG_data\train_features_negatives.h5"
+TRAIN_H5 = "vg_data/features/train_features_negatives.h5"
 
 SPATIAL_CLASSES = ["__background__", "above", "across", "against", "along", "at", "behind", "between", "in", "in front of", "near", "on", "on back of", "over", "under", "with"]
 ACTION_CLASSES = ["__background__", "carrying", "eating", "flying in", "holding", "laying on", "looking at", "lying on", "playing", "riding", "sitting on", "standing on", "using", "walking in", "walking on", "watching", "wearing", "wears"]

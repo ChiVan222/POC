@@ -1,0 +1,25 @@
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+
+numpy<2.0.0
+scipy
+h5py
+PyYAML
+
+opencv-python
+matplotlib
+supervision
+pycocotools
+
+transformers
+accelerate
+huggingface-hub
+
+addict
+yapf
+timm
+
+clip @ git+https://github.com/openai/CLIP.git@dcba3cb2e2827b402d2701e7e1c7d9fed8a20ef1
+segment_anything @ git+https://github.com/facebookresearch/segment-anything.git@dca509fe793f601edb92606367a655c15ac00fdf
+-e ./GroundingDINO

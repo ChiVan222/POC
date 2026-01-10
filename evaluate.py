@@ -10,13 +10,13 @@ from train import build_text_prototypes_cached, SPATIAL_CLASSES, ACTION_CLASSES
 from datasets.vg import VGDataset, VG150_PREDICATES 
 
 CHECKPOINT_PATH = "checkpoints/epoch_50.pth"
-TEST_H5 = r"C:\Users\van\Desktop\SGG_data\test_features_with_ids.h5"
+TEST_H5 ="vg_data/features/test_features_with_ids.h5"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-IMG_DIR = r"D:\SceneGraphGeneration\POC\vg_data\VG_100K"
-ROIDB_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG.h5"
-DICT_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\VG-SGG-dicts.json"
-IMAGE_FILE = r"D:\SceneGraphGeneration\POC\vg_data\stanford_filtered\image_data.json"
+IMG_DIR = "vg_data/VG_100K"
+ROIDB_FILE = "vg_data/stanford_filtered/VG-SGG.h5"
+DICT_FILE = "vg_data/stanford_filtered/VG-SGG-dicts.json"
+IMAGE_FILE = "vg_data/stanford_filtered/image_data.json"
 K_VALS = [20, 50, 100]
 
 PREDICATE_MAPPING = {
@@ -123,14 +123,24 @@ def evaluate_predcls_global():
 
     print("-" * 60)
 
-    mr_row = [f"{'mR@K':<20}"]
+    for cat in ["Spatial", "Action"]:
+        mr_cat_row = [f"{'mR@K ({cat}):'<20}"]
+        cat_preds = [VG150_PREDICATES.index(p) for p in PREDICATE_MAPPING[cat] if p in VG150_PREDICATES]
+        for k in K_VALS:
+            recalls = [per_pred_hits[p][k] / per_pred_totals[p] for p in cat_preds if per_pred_totals[p] > 0]
+            mr_cat_row.append(f"{np.mean(recalls):<10.4f}" if recalls else f"{0:<10.4f}")
+        print(" | ".join(mr_cat_row))
+
+    print("-" * 60)
+
+    mr_row = [f"{'mR@K (Global)':<20}"]
     for k in K_VALS:
         recalls = [per_pred_hits[p][k] / per_pred_totals[p] for p in range(1, num_preds) if per_pred_totals[p] > 0]
         mr_row.append(f"{np.mean(recalls):<10.4f}" if recalls else f"{0:<10.4f}")
     print(" | ".join(mr_row))
 
     total_gt = sum(cat_totals.values())
-    total_row = [f"{'R@K':<20}"]
+    total_row = [f"{'R@K (Global)':<20}"]
     for k in K_VALS:
         hits = sum(cat_hits[c][k] for c in cat_hits)
         total_row.append(f"{hits / total_gt:<10.4f}" if total_gt else f"{0:<10.4f}")
