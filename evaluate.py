@@ -124,7 +124,7 @@ def evaluate_predcls_global():
     print("-" * 60)
 
     for cat in ["Spatial", "Action"]:
-        mr_cat_row = [f"{'mR@K ({cat}):'<20}"]
+        mr_cat_row = [f"{'mR@K ({cat})':<20}"]
         cat_preds = [VG150_PREDICATES.index(p) for p in PREDICATE_MAPPING[cat] if p in VG150_PREDICATES]
         for k in K_VALS:
             recalls = [per_pred_hits[p][k] / per_pred_totals[p] for p in cat_preds if per_pred_totals[p] > 0]
